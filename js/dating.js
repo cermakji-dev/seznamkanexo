@@ -7,7 +7,30 @@
 
   // Po potvrzení e-mailu (PKCE ?code=…) rovnou do seznamky
 
-  const LOOKING = { date: 'Rande', friends: 'Přátelé', tonight: 'Dnes večer', chat: 'Chat' };
+  const OPT = {
+    looking: { date: 'Rande', friends: 'Přátelé', tonight: 'Dnes večer', chat: 'Chat', relationship: 'Vztah', networking: 'Networking' },
+    position: { top: 'Aktivní (top)', vers_top: 'Spíš aktivní', versatile: 'Univerzál', vers_bottom: 'Spíš pasivní', bottom: 'Pasivní (bottom)', side: 'Side' },
+    body_type: { slim: 'Štíhlá', average: 'Průměrná', athletic: 'Sportovní', muscular: 'Svalnatá', stocky: 'Statná', large: 'Plnější' },
+    tribes: { bear: 'Bear', clean_cut: 'Clean-cut', daddy: 'Daddy', discreet: 'Diskrétní', geek: 'Geek', jock: 'Jock', leather: 'Leather', otter: 'Otter', poz: 'Poz', rugged: 'Rugged', sober: 'Sober', trans: 'Trans', twink: 'Twink', muscle: 'Muscle', chub: 'Chub', fem: 'Fem' },
+    relationship: { single: 'Single', dating: 'Randím', partnered: 'Mám partnera', open: 'Otevřený vztah', married: 'Ženatý / partnerství', complicated: 'Je to složité' },
+    meet_at: { my_place: 'U mě', your_place: 'U tebe', bar: 'Bar', cafe: 'Kavárna', restaurant: 'Restaurace', outdoors: 'Venku', event: 'Na akci' },
+    nsfw: { never: 'Nikdy', not_first: 'Ne hned', yes: 'Ano' },
+    hiv_status: { negative: 'Negativní', negative_prep: 'Negativní, na PrEP', positive: 'Pozitivní', positive_undetectable: 'Pozitivní, nedetekovatelný (U=U)', unknown: 'Nevím' },
+    gender: { man: 'Muž', trans_man: 'Trans muž', nonbinary: 'Nebinární', genderqueer: 'Genderqueer', trans_woman: 'Trans žena', other: 'Jiné' },
+    smoking: { no: 'Nekouřím', sometimes: 'Příležitostně', yes: 'Kouřím' },
+  };
+  const LOOKING = OPT.looking;
+  const INTERESTS = ['Hudba', 'Party', 'Tanec', 'Fitness', 'Běh', 'Cyklistika', 'Lezení', 'Jóga', 'Plavání', 'Cestování', 'Příroda', 'Film', 'Seriály', 'Divadlo', 'Umění', 'Design', 'Móda', 'Fotografie', 'Knihy', 'Gaming', 'Technologie', 'Věda', 'Vaření', 'Káva', 'Pivo', 'Víno', 'Zvířata', 'Drag', 'Jazyky', 'Architektura'];
+  const LANGS = ['Čeština', 'Slovenština', 'Angličtina', 'Němčina', 'Polština', 'Ukrajinština', 'Ruština', 'Francouzština', 'Španělština', 'Italština'];
+  const FILTER_KEY = 'nexo-dating-filters';
+  const emptyFilters = () => ({ online: false, has_photo: false, min_age: 18, max_age: 99, max_km: null, min_height: null, max_height: null, min_weight: null, max_weight: null,
+    looking: [], positions: [], body_types: [], tribes: [], relationship: [], meet_at: [], nsfw: [], gender: [] });
+  const loadFilters = () => { try { return { ...emptyFilters(), ...JSON.parse(localStorage.getItem(FILTER_KEY) || '{}') }; } catch { return emptyFilters(); } };
+  const saveFilters = () => { try { localStorage.setItem(FILTER_KEY, JSON.stringify(st.filters)); } catch { /* bez úložiště */ } };
+  const activeFilters = (f) => ['online', 'has_photo'].filter((k) => f[k]).length + (f.min_age > 18 || f.max_age < 99 ? 1 : 0)
+    + ['max_km', 'min_height', 'max_height', 'min_weight', 'max_weight'].filter((k) => f[k] != null).length
+    + ['looking', 'positions', 'body_types', 'tribes', 'relationship', 'meet_at', 'nsfw', 'gender'].reduce((a, k) => a + f[k].length, 0);
+  const label = (cat, v) => OPT[cat]?.[v] || v;
   const TAPS = { hi: ['👋', 'Ahoj'], flame: ['🔥', 'Líbíš se mi'], wink: ['😉', 'Mrk'] };
   const REASONS = { fake: 'Falešný profil', spam: 'Spam / reklama', harassment: 'Obtěžování', underage: 'Pravděpodobně nezletilý', inappropriate: 'Nevhodný obsah', other: 'Jiné' };
 
@@ -16,7 +39,7 @@
     root: null, mounted: false, booted: false, session: null, me: null,
     view: 'grid', authMode: 'login', busy: false,
     grid: null, deck: null, convos: null, taps: [], people: {},
-    filters: { online: false, looking: null, maxKm: null, minAge: 18, maxAge: 99 },
+    filters: null,
     deckMode: null, coords: null, geo: 'unknown',
     chat: null, live: null, hb: null, unreadMsgs: 0,
   };
@@ -171,24 +194,21 @@
 
   async function person(id) {
     if (st.people[id]) return st.people[id];
-    const { data } = await sb.from('profiles').select('id,display_name,birthdate,bio,tags,looking_for,height_cm,weight_kg,photos,last_active,is_demo').eq('id', id).maybeSingle();
+    const { data } = await sb.from('profiles').select('*').eq('id', id).maybeSingle();
     if (data) { data.age = ageOf(data.birthdate); st.people[id] = { ...data, online: (Date.now() - new Date(data.last_active)) < 300000 }; }
     return st.people[id];
   }
 
   /* ---------- Načítání dat ---------- */
   async function loadGrid() {
-    const f = st.filters;
-    const { data, error } = await sb.rpc('nearby', {
-      p_limit: 120, p_max_km: f.maxKm, p_min_age: f.minAge, p_max_age: f.maxAge,
-      p_looking: f.looking, p_online_only: f.online, p_exclude_swiped: false,
-    });
+    const { data, error } = await sb.rpc('nearby', { p_filters: st.filters, p_limit: 150 });
     if (error) { toast(esc(errText(error))); st.grid = []; } else st.grid = data;
     (st.grid || []).forEach((p) => (st.people[p.id] = p));
     if (st.view === 'grid') draw();
   }
   async function loadDeck() {
-    const { data, error } = await sb.rpc('nearby', { p_limit: 40, p_looking: st.deckMode, p_exclude_swiped: true });
+    const f = { ...st.filters, looking: st.deckMode ? [st.deckMode] : st.filters.looking };
+    const { data, error } = await sb.rpc('nearby', { p_filters: f, p_limit: 40, p_exclude_swiped: true });
     if (error) { toast(esc(errText(error))); st.deck = []; } else st.deck = data;
     st.deck.forEach((p) => (st.people[p.id] = p));
     if (st.view === 'swipe') draw();
@@ -251,9 +271,15 @@
     </div>`;
   }
 
-  function lookingChecks(sel = ['date']) {
-    return `<div class="d-chipset">${Object.entries(LOOKING).map(([k, l]) => `<label class="d-chk"><input type="checkbox" name="looking" value="${k}" ${sel.includes(k) ? 'checked' : ''} /><span>${l}</span></label>`).join('')}</div>`;
+  function chips(name, items, sel = [], type = 'checkbox') {
+    const list = Array.isArray(items) ? items.map((x) => [x, x]) : Object.entries(items);
+    return `<div class="d-chipset">${list.map(([k, l]) => `<label class="d-chk"><input type="${type}" name="${name}" value="${esc(k)}" ${sel.includes(k) ? 'checked' : ''} /><span>${esc(l)}</span></label>`).join('')}</div>`;
   }
+  const lookingChecks = (sel = ['date']) => chips('looking', LOOKING, sel);
+  function pick(name, cat, val) {
+    return `<select name="${name}"><option value="">Neuvedeno</option>${Object.entries(OPT[cat]).map(([k, l]) => `<option value="${k}" ${val === k ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
+  }
+  const sec = (title, body, open = true) => `<details class="d-sec" ${open ? 'open' : ''}><summary>${title}</summary><div class="d-sec-body">${body}</div></details>`;
 
   function onboardingView() {
     const maxDate = new Date(); maxDate.setFullYear(maxDate.getFullYear() - 18);
@@ -263,8 +289,8 @@
       <label class="field"><span>Datum narození <small class="muted">(nelze později změnit)</small></span><input name="birthdate" type="date" required max="${maxDate.toISOString().slice(0, 10)}" /></label>
       <div class="field"><span>Hledám</span>${lookingChecks()}</div>
       <label class="field"><span>O mně</span><textarea name="bio" maxlength="500" rows="3" placeholder="Pár slov o sobě…"></textarea></label>
-      <label class="field"><span>Zájmy <small class="muted">(oddělené čárkou)</small></span><input name="tags" maxlength="200" placeholder="Hudba, běh, kafe" /></label>
       <label class="field"><span>Fotky <small class="muted">(až 6, z fotek odstraníme polohu)</small></span><input name="photos" type="file" accept="image/*" multiple /></label>
+      <p class="muted small">Postavu, pozici, kmeny, zájmy a další kategorie doplníš potom v záložce Profil.</p>
       <button class="btn btn-grad btn-block" ${st.busy ? 'disabled' : ''}>${st.busy ? 'Ukládám…' : 'Pokračovat'}</button>
       <button type="button" class="link center" data-d="logout">Odhlásit</button>
     </form></div>`;
@@ -285,22 +311,49 @@
     </div>`;
   }
 
-  function gridView() {
-    if (!st.grid) { loadGrid(); return `<div class="d-loading"><span class="spin"></span></div>`; }
-    const f = st.filters;
+  function filterBar() {
+    const f = st.filters, n = activeFilters(f);
     return `<div class="d-filters">
-        <button class="chip ${f.online ? 'on' : ''}" data-d="f-online"><i class="dot"></i> Online</button>
-        ${Object.entries(LOOKING).map(([k, l]) => `<button class="chip ${f.looking === k ? 'on' : ''}" data-d="f-look" data-k="${k}">${l}</button>`).join('')}
-        <select data-d="f-km" aria-label="Vzdálenost">${[[null, 'Jakákoli vzdálenost'], [1, 'do 1 km'], [5, 'do 5 km'], [10, 'do 10 km'], [25, 'do 25 km'], [100, 'do 100 km']].map(([v, l]) => `<option value="${v ?? ''}" ${f.maxKm === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
-        <span class="d-age">Věk <input type="number" min="18" max="99" value="${f.minAge}" data-d="f-min" aria-label="Věk od" /> – <input type="number" min="18" max="99" value="${f.maxAge}" data-d="f-max" aria-label="Věk do" /></span>
-        <button class="icon-btn" data-d="reload" aria-label="Obnovit">${I('undo')}</button>
-      </div>
-      ${st.grid.length ? `<div class="d-grid">${st.grid.map((p) => `
+        <button class="chip d-fbtn ${n ? 'on' : ''}" data-d="filters">${I('filter')} Filtry${n ? ` <b class="d-badge">${n}</b>` : ''}</button>
+        <button class="chip ${f.online ? 'on' : ''}" data-d="f-toggle" data-k="online"><i class="dot"></i> Online</button>
+        <button class="chip ${f.has_photo ? 'on' : ''}" data-d="f-toggle" data-k="has_photo">S fotkou</button>
+        <span class="d-fsep"></span>
+        ${Object.entries(OPT.tribes).map(([k, l]) => `<button class="chip ${f.tribes.includes(k) ? 'on' : ''}" data-d="f-tribe" data-k="${k}">${l}</button>`).join('')}
+      </div>`;
+  }
+  function gridView() {
+    if (!st.grid) { loadGrid(); return filterBar() + `<div class="d-loading"><span class="spin"></span></div>`; }
+    return filterBar() + (st.grid.length ? `<div class="d-grid">${st.grid.map((p) => `
         <button class="d-tile" data-d="open-profile" data-id="${p.id}">
           ${avatar(p)}
+          ${p.position ? `<span class="d-tile-pos">${esc(label('position', p.position).replace(/ \(.*\)/, ''))}</span>` : ''}
           <span class="d-tile-info">${p.online ? '<i class="dot"></i>' : ''}<b>${esc(p.display_name)}</b><small>${fmtDist(p.distance_m)}</small></span>
         </button>`).join('')}</div>`
-      : `<div class="empty glass">${I('users')}<h3>Nikdo neodpovídá filtrům</h3><p class="muted">Zkus filtry uvolnit.</p></div>`}`;
+      : `<div class="empty glass">${I('users')}<h3>Nikdo neodpovídá filtrům</h3><p class="muted">Zkus filtry uvolnit.</p><button class="btn btn-ghost" data-d="f-reset">Zrušit filtry</button></div>`);
+  }
+
+  function filtersModal() {
+    const f = st.filters;
+    const num = (name, v, ph, min, max) => `<input type="number" name="${name}" value="${v ?? ''}" placeholder="${ph}" min="${min}" max="${max}" />`;
+    modal(`<form id="dFilters" class="d-form d-filters-form"><h2>${I('filter')} Filtry</h2>
+      <div class="d-two">
+        <label class="field"><span>Věk</span><div class="d-range">${num('min_age', f.min_age > 18 ? f.min_age : null, '18', 18, 99)}–${num('max_age', f.max_age < 99 ? f.max_age : null, '99', 18, 99)}</div></label>
+        <label class="field"><span>Vzdálenost</span><select name="max_km">${[['', 'Jakákoli'], [1, 'do 1 km'], [2, 'do 2 km'], [5, 'do 5 km'], [10, 'do 10 km'], [25, 'do 25 km'], [100, 'do 100 km']].map(([v, l]) => `<option value="${v}" ${String(f.max_km ?? '') === String(v) ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+        <label class="field"><span>Výška (cm)</span><div class="d-range">${num('min_height', f.min_height, 'od', 120, 230)}–${num('max_height', f.max_height, 'do', 120, 230)}</div></label>
+        <label class="field"><span>Váha (kg)</span><div class="d-range">${num('min_weight', f.min_weight, 'od', 35, 250)}–${num('max_weight', f.max_weight, 'do', 35, 250)}</div></label>
+      </div>
+      <div class="d-chipset"><label class="d-chk"><input type="checkbox" name="online" ${f.online ? 'checked' : ''} /><span>Jen online</span></label><label class="d-chk"><input type="checkbox" name="has_photo" ${f.has_photo ? 'checked' : ''} /><span>Jen s fotkou</span></label></div>
+      ${sec('Hledá', chips('looking', OPT.looking, f.looking))}
+      ${sec('Pozice', chips('positions', OPT.position, f.positions))}
+      ${sec('Kmeny', chips('tribes', OPT.tribes, f.tribes))}
+      ${sec('Postava', chips('body_types', OPT.body_type, f.body_types), false)}
+      ${sec('Vztah', chips('relationship', OPT.relationship, f.relationship), false)}
+      ${sec('Kde se setkat', chips('meet_at', OPT.meet_at, f.meet_at), false)}
+      ${sec('NSFW fotky', chips('nsfw', OPT.nsfw, f.nsfw), false)}
+      ${sec('Identita', chips('gender', OPT.gender, f.gender), false)}
+      <p class="muted small">V rámci jedné kategorie stačí shoda v jedné volbě. Profily, které údaj nevyplnily, se při aktivním filtru nezobrazí.</p>
+      <div class="d-actions"><button type="button" class="btn btn-ghost" data-d="f-reset">Zrušit vše</button><button class="btn btn-grad">Zobrazit</button></div>
+    </form>`, 'modal-filters');
   }
 
   function swipeView() {
@@ -327,7 +380,7 @@
         <h2>${esc(p.display_name)}, ${p.age} ${p.online ? '<i class="dot"></i>' : ''}</h2>
         <div class="pcard-meta">${p.distance_m != null ? `${I('pin')} ${fmtDist(p.distance_m)}` : ''} ${p.is_demo ? '<span class="tag">Ukázkový profil</span>' : ''}</div>
         ${p.bio ? `<p>${esc(p.bio)}</p>` : ''}
-        <div class="tags">${(p.looking_for || []).map((k) => `<span class="lf">${LOOKING[k]}</span>`).join('')}${(p.tags || []).map((t) => `<span>${esc(t)}</span>`).join('')}</div>
+        <div class="tags">${p.position ? `<span class="pos">${esc(label('position', p.position))}</span>` : ''}${(p.tribes || []).slice(0, 3).map((t) => `<span class="tr">${esc(label('tribes', t))}</span>`).join('')}${(p.looking_for || []).map((k) => `<span class="lf">${LOOKING[k]}</span>`).join('')}</div>
       </div>
     </article>`;
   }
@@ -365,15 +418,33 @@
       </div>
       <form id="dProfile" class="glass d-me-card d-form">
         <h3>Profil</h3>
-        <label class="field"><span>Přezdívka</span><input name="name" required maxlength="30" value="${esc(m.display_name)}" /></label>
-        <div class="field"><span>Věk</span><b>${ageOf(m.birthdate)}</b></div>
-        <div class="field"><span>Hledám</span>${lookingChecks(m.looking_for)}</div>
-        <label class="field"><span>O mně</span><textarea name="bio" maxlength="500" rows="3">${esc(m.bio)}</textarea></label>
-        <label class="field"><span>Zájmy</span><input name="tags" maxlength="200" value="${esc(m.tags.join(', '))}" /></label>
-        <div class="d-two"><label class="field"><span>Výška (cm)</span><input name="height" type="number" min="120" max="230" value="${m.height_cm ?? ''}" /></label>
-        <label class="field"><span>Váha (kg)</span><input name="weight" type="number" min="35" max="250" value="${m.weight_kg ?? ''}" /></label></div>
-        <label class="check"><input type="checkbox" name="show" ${m.show_in_grid ? 'checked' : ''} /> Zobrazovat mě v Okolí a ve Swipu</label>
-        <label class="check"><input type="checkbox" name="hide" ${m.hide_distance ? 'checked' : ''} /> Skrýt moji vzdálenost</label>
+        ${sec('Základ', `
+          <label class="field"><span>Přezdívka</span><input name="name" required maxlength="30" value="${esc(m.display_name)}" /></label>
+          <div class="field"><span>Věk</span><b>${ageOf(m.birthdate)}</b></div>
+          <label class="field"><span>O mně</span><textarea name="bio" maxlength="500" rows="3">${esc(m.bio)}</textarea></label>
+          <div class="field"><span>Hledám</span>${lookingChecks(m.looking_for)}</div>`)}
+        ${sec('Tělo a pozice', `
+          <div class="d-two"><label class="field"><span>Výška (cm)</span><input name="height" type="number" min="120" max="230" value="${m.height_cm ?? ''}" /></label>
+          <label class="field"><span>Váha (kg)</span><input name="weight" type="number" min="35" max="250" value="${m.weight_kg ?? ''}" /></label>
+          <label class="field"><span>Postava</span>${pick('body_type', 'body_type', m.body_type)}</label>
+          <label class="field"><span>Pozice</span>${pick('position', 'position', m.position)}</label></div>`)}
+        ${sec('Kmeny <small class="muted">(jak se vidíš)</small>', chips('tribes', OPT.tribes, m.tribes || []))}
+        ${sec('Zájmy', chips('tags', [...new Set([...INTERESTS, ...(m.tags || [])])], m.tags || []))}
+        ${sec('Vztah a setkání', `
+          <div class="d-two"><label class="field"><span>Vztah</span>${pick('relationship', 'relationship', m.relationship)}</label>
+          <label class="field"><span>NSFW fotky</span>${pick('nsfw', 'nsfw', m.nsfw)}</label></div>
+          <div class="field"><span>Kde se setkat</span>${chips('meet_at', OPT.meet_at, m.meet_at || [])}</div>`, false)}
+        ${sec('Identita a jazyky', `
+          <div class="d-two"><label class="field"><span>Identita</span>${pick('gender', 'gender', m.gender)}</label>
+          <label class="field"><span>Zájmena</span><input name="pronouns" maxlength="20" placeholder="např. on/jeho" value="${esc(m.pronouns || '')}" /></label>
+          <label class="field"><span>Kouření</span>${pick('smoking', 'smoking', m.smoking)}</label></div>
+          <div class="field"><span>Jazyky</span>${chips('languages', LANGS, m.languages || [])}</div>`, false)}
+        ${sec('Zdraví <small class="muted">(nepovinné, vidí ostatní)</small>', `
+          <div class="d-two"><label class="field"><span>HIV status</span>${pick('hiv_status', 'hiv_status', m.hiv_status)}</label>
+          <label class="field"><span>Poslední test</span><input name="last_tested" type="date" max="${new Date().toISOString().slice(0, 10)}" value="${m.last_tested || ''}" /></label></div>`, false)}
+        ${sec('Soukromí', `
+          <label class="check"><input type="checkbox" name="show" ${m.show_in_grid ? 'checked' : ''} /> Zobrazovat mě v Okolí a ve Swipu</label>
+          <label class="check"><input type="checkbox" name="hide" ${m.hide_distance ? 'checked' : ''} /> Skrýt moji vzdálenost</label>`, false)}
         <button class="btn btn-grad btn-block">Uložit profil</button>
       </form>
       <div class="glass d-me-card">
@@ -388,6 +459,22 @@
   }
 
   /* ---------- Detail profilu ---------- */
+  function facts(p) {
+    const rows = [];
+    const add = (l, v) => v && rows.push(`<dt>${l}</dt><dd>${v}</dd>`);
+    add('Výška / váha', [p.height_cm && `${p.height_cm} cm`, p.weight_kg && `${p.weight_kg} kg`].filter(Boolean).join(' • '));
+    add('Postava', p.body_type && label('body_type', p.body_type));
+    add('Pozice', p.position && label('position', p.position));
+    add('Kmeny', (p.tribes || []).map((t) => label('tribes', t)).join(', '));
+    add('Vztah', p.relationship && label('relationship', p.relationship));
+    add('Kde se setkat', (p.meet_at || []).map((t) => label('meet_at', t)).join(', '));
+    add('NSFW fotky', p.nsfw && label('nsfw', p.nsfw));
+    add('Identita', [p.gender && label('gender', p.gender), p.pronouns && esc(p.pronouns)].filter(Boolean).join(' • '));
+    add('HIV status', p.hiv_status && label('hiv_status', p.hiv_status) + (p.last_tested ? ` <span class="muted">(test ${new Date(p.last_tested).toLocaleDateString('cs-CZ')})</span>` : ''));
+    add('Kouření', p.smoking && label('smoking', p.smoking));
+    add('Jazyky', (p.languages || []).map(esc).join(', '));
+    return rows.length ? `<dl class="d-facts">${rows.join('')}</dl>` : '';
+  }
   async function openProfile(id) {
     const p = st.people[id] || (await person(id));
     if (!p) return toast('Profil není dostupný');
@@ -398,9 +485,9 @@
         <h2>${esc(p.display_name)}, ${p.age} ${p.online ? '<i class="dot"></i>' : ''}</h2>
         <p class="muted small">${[fmtDist(p.distance_m), p.online ? 'online' : ago(p.last_active)].filter(Boolean).join(' • ')}${p.is_demo ? ' • <span class="tag">Ukázkový profil</span>' : ''}</p>
         <div class="tags">${(p.looking_for || []).map((k) => `<span class="lf">${LOOKING[k]}</span>`).join('')}</div>
-        ${p.height_cm || p.weight_kg ? `<p class="small">${p.height_cm ? p.height_cm + ' cm' : ''}${p.height_cm && p.weight_kg ? ' • ' : ''}${p.weight_kg ? p.weight_kg + ' kg' : ''}</p>` : ''}
         ${p.bio ? `<p>${esc(p.bio)}</p>` : ''}
-        ${(p.tags || []).length ? `<div class="tags">${p.tags.map((t) => `<span>${esc(t)}</span>`).join('')}</div>` : ''}
+        ${facts(p)}
+        ${(p.tags || []).length ? `<div><p class="eyebrow">Zájmy</p><div class="tags">${p.tags.map((t) => `<span>${esc(t)}</span>`).join('')}</div></div>` : ''}
         <div class="d-actions">
           <button class="btn btn-grad" data-d="chat" data-id="${p.id}">${I('chat')} Napsat</button>
           <button class="btn btn-ghost" data-d="like" data-id="${p.id}">${I('heart')} Líbí se mi</button>
@@ -553,8 +640,14 @@
         draw(); break;
       case 'reload': st.grid = null; await heartbeat(); draw(); break;
       case 'locate': await heartbeat(); st.grid = null; st.deck = null; draw(); break;
-      case 'f-online': st.filters.online = !st.filters.online; st.grid = null; draw(); break;
-      case 'f-look': st.filters.looking = st.filters.looking === el.dataset.k ? null : el.dataset.k; st.grid = null; draw(); break;
+      case 'filters': filtersModal(); break;
+      case 'f-toggle': st.filters[el.dataset.k] = !st.filters[el.dataset.k]; saveFilters(); st.grid = null; st.deck = null; draw(); break;
+      case 'f-tribe': {
+        const k = el.dataset.k, t = st.filters.tribes;
+        st.filters.tribes = t.includes(k) ? t.filter((x) => x !== k) : [...t, k];
+        saveFilters(); st.grid = null; st.deck = null; draw(); break;
+      }
+      case 'f-reset': st.filters = emptyFilters(); saveFilters(); closeModal(); st.grid = null; st.deck = null; draw(); break;
       case 'deck-mode': st.deckMode = el.dataset.k || null; st.deck = null; draw(); break;
       case 'open-profile': openProfile(id); break;
       case 'chat': openChat(id); break;
@@ -617,11 +710,6 @@
     const el = ev.target;
     if (!sb || !el.dataset) return;
     const d = el.dataset.d;
-    if (d === 'f-km') { st.filters.maxKm = el.value ? Number(el.value) : null; st.grid = null; draw(); }
-    if (d === 'f-min' || d === 'f-max') {
-      const v = Math.min(99, Math.max(18, Number(el.value) || 18));
-      st.filters[d === 'f-min' ? 'minAge' : 'maxAge'] = v; st.grid = null; draw();
-    }
     if (d === 'photo-add') {
       const files = [...el.files].slice(0, 6 - st.me.photos.length);
       if (!files.length) return;
@@ -641,7 +729,7 @@
 
   document.addEventListener('submit', async (ev) => {
     const f = ev.target;
-    if (!sb || !['dAuth', 'dOnboard', 'dProfile', 'dChatForm', 'dReport'].includes(f.id)) return;
+    if (!sb || !['dAuth', 'dOnboard', 'dProfile', 'dChatForm', 'dReport', 'dFilters'].includes(f.id)) return;
     ev.preventDefault();
     const fd = new FormData(f);
     if (f.id === 'dChatForm') {
@@ -675,7 +763,6 @@
       const row = {
         id: uid(), display_name: String(fd.get('name')).trim(), birthdate: fd.get('birthdate'),
         bio: String(fd.get('bio') || '').trim(), looking_for: fd.getAll('looking'),
-        tags: String(fd.get('tags') || '').split(',').map((s) => s.trim()).filter(Boolean).slice(0, 10),
       };
       if (!row.looking_for.length) row.looking_for = ['date'];
       const files = [...(f.querySelector('[name=photos]').files || [])].slice(0, 6);
@@ -694,15 +781,30 @@
       return;
     }
     if (f.id === 'dProfile') {
+      const v = (k) => (fd.get(k) ? String(fd.get(k)) : null);
+      const n = (k) => (fd.get(k) ? Number(fd.get(k)) : null);
       const ok = await saveMe({
         display_name: String(fd.get('name')).trim(), bio: String(fd.get('bio') || '').trim(),
         looking_for: fd.getAll('looking').length ? fd.getAll('looking') : ['date'],
-        tags: String(fd.get('tags') || '').split(',').map((s) => s.trim()).filter(Boolean).slice(0, 10),
-        height_cm: fd.get('height') ? Number(fd.get('height')) : null,
-        weight_kg: fd.get('weight') ? Number(fd.get('weight')) : null,
+        tags: fd.getAll('tags').slice(0, 20), tribes: fd.getAll('tribes'), meet_at: fd.getAll('meet_at'), languages: fd.getAll('languages').slice(0, 8),
+        height_cm: n('height'), weight_kg: n('weight'), body_type: v('body_type'), position: v('position'),
+        relationship: v('relationship'), nsfw: v('nsfw'), gender: v('gender'), pronouns: v('pronouns')?.trim() || null,
+        smoking: v('smoking'), hiv_status: v('hiv_status'), last_tested: v('last_tested'),
         show_in_grid: !!fd.get('show'), hide_distance: !!fd.get('hide'),
       });
-      if (ok) toast(`${I('check')} Profil uložen`);
+      if (ok) { toast(`${I('check')} Profil uložen`); st.grid = null; st.deck = null; }
+      return;
+    }
+    if (f.id === 'dFilters') {
+      const n = (k) => (fd.get(k) ? Number(fd.get(k)) : null);
+      st.filters = {
+        online: !!fd.get('online'), has_photo: !!fd.get('has_photo'),
+        min_age: n('min_age') || 18, max_age: n('max_age') || 99, max_km: n('max_km'),
+        min_height: n('min_height'), max_height: n('max_height'), min_weight: n('min_weight'), max_weight: n('max_weight'),
+        looking: fd.getAll('looking'), positions: fd.getAll('positions'), tribes: fd.getAll('tribes'), body_types: fd.getAll('body_types'),
+        relationship: fd.getAll('relationship'), meet_at: fd.getAll('meet_at'), nsfw: fd.getAll('nsfw'), gender: fd.getAll('gender'),
+      };
+      saveFilters(); closeModal(); st.grid = null; st.deck = null; draw();
       return;
     }
     if (f.id === 'dReport') {
@@ -725,6 +827,7 @@
   /* ---------- Start ---------- */
   async function boot() {
     if (st.booted || !window.supabase) return;
+    st.filters = loadFilters();
     sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseKey, { auth: { persistSession: true, detectSessionInUrl: true, flowType: 'pkce' } });
     const { data } = await sb.auth.getSession();
     st.session = data.session;
