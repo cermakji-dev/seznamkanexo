@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>NEXO — People • Places • Experiences</title>
+  <meta name="description" content="NEXO — jeden ekosystém pro gay komunitu v Praze. Seznamka, e-shop, kluby, meetingy a komunita propojené jedním členstvím." />
+  <meta name="theme-color" content="#07060b" />
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a href="#/" class="logo" aria-label="NEXO domů">NEXO</a>
+    <nav class="nav" id="nav"></nav>
+    <div class="topbar-actions">
+      <a href="#/kosik" class="icon-btn" aria-label="Košík" id="cartBtn"></a>
+      <a href="#/ucet" class="plan-chip" id="planChip"></a>
+    </div>
+  </header>
+
+  <main id="app" tabindex="-1"></main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>
+        <div class="logo logo-sm">NEXO</div>
+        <p class="tagline">People • Places • Experiences</p>
+      </div>
+      <p class="muted small">© 2026 NEXO Praha. Pouze pro osoby starší 18 let.<br />Demo verze — data se ukládají jen ve vašem prohlížeči.</p>
+    </div>
+  </footer>
+
+  <nav class="tabbar" id="tabbar" aria-label="Hlavní navigace"></nav>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="modal-root" id="modal"></div>
+
+  <script src="js/icons.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
