@@ -232,47 +232,9 @@
       </section>`;
     },
 
-    /* ----- Seznamka ----- */
+    /* ----- Seznamka (skutečná, js/dating.js) ----- */
     seznamka() {
-      const deck = currentDeck();
-      const top = deck[0];
-      const limitHit = S.plan === 'free' && S.likes.n >= FREE_LIKES;
-      const modes = [['date', 'Date'], ['friends', 'Friends'], ['tonight', 'Tonight']];
-      return `
-      <section class="container page">
-        <div class="page-head">
-          <div><p class="eyebrow">1. Seznamka</p><h1>Poznej nové lidi</h1><p class="muted">Na vztah, sex nebo přátelství — ty volíš režim.</p></div>
-          <div class="seg" role="tablist">${modes.map(([m, l]) => `<button role="tab" class="${S.mode === m ? 'on' : ''}" data-act="mode" data-mode="${m}">${l}</button>`).join('')}</div>
-        </div>
-        ${adBanner()}
-        <div class="dating">
-          <div class="deck-col">
-            <div class="deck-tools">
-              <span class="muted small">${S.plan === 'free' ? `Lajky dnes: <b>${S.likes.n}/${FREE_LIKES}</b>` : 'Neomezené lajky'}</span>
-              <button class="btn btn-sm btn-ghost" data-act="filters">${I('filter')} Filtry${noAds() ? '' : ' ' + I('lock', 'ic-xs')}</button>
-            </div>
-            <div class="deck" id="deck">
-              ${top ? deck.slice(0, 3).reverse().map((p, i, arr) => profileCard(p, i === arr.length - 1)).join('') :
-                `<div class="deck-empty glass">${I('sparkle')}<h3>To je pro teď všechno</h3><p class="muted">V režimu ${modes.find((m) => m[0] === S.mode)[1]} už nikoho dalšího nemáme. Zkus jiný režim, uprav filtry nebo přijď na akci.</p><button class="btn btn-ghost" data-act="reset-deck">Projít znovu</button></div>`}
-            </div>
-            ${top ? `<div class="swipe-btns">
-              <button class="round" data-act="undo" aria-label="Vrátit" title="Vrátit (Ad-Free a NEXO+)">${I('undo')}</button>
-              <button class="round round-lg" data-act="pass" aria-label="Přeskočit">${I('x')}</button>
-              <button class="round round-lg round-like" data-act="like" aria-label="Líbí se mi" ${limitHit ? 'disabled' : ''}>${I('heart')}</button>
-              <button class="round" data-act="super" aria-label="Super like" title="Super like (NEXO+)">${I('star')}</button>
-            </div>` : ''}
-            ${limitHit ? `<p class="center small muted">Dnešní lajky došly. <a class="link" href="#clenstvi">Neomezeně od 99 Kč</a></p>` : ''}
-          </div>
-          <aside class="chat-col glass">
-            <h3 class="col-title">${I('chat')} Matche a zprávy</h3>
-            ${matchesList()}
-            <div class="events-hint">
-              <p class="eyebrow">Event discovery</p>
-              ${D.events.slice(0, 3).map(eventMini).join('')}
-            </div>
-          </aside>
-        </div>
-      </section>`;
+      return `<section class="container page"><div class="page-head"><div><p class="eyebrow">1. Seznamka</p><h1>Poznej nové lidi</h1><p class="muted">Na vztah, sex nebo přátelství — ty volíš režim.</p></div></div><div id="dating-root"></div></section>`;
     },
 
     /* ----- E-shop ----- */
@@ -731,7 +693,7 @@
 
   document.addEventListener('submit', (ev) => {
     const f = ev.target;
-    if (f.classList.contains('chat-form')) {
+    if (f.classList.contains('chat-form') && $('#chatInput')) {
       ev.preventDefault();
       const input = $('#chatInput');
       const t = input.value.trim();
@@ -771,9 +733,6 @@
 
   document.addEventListener('keydown', (ev) => {
     if (ev.key === 'Escape') closeModal();
-    if (route().name !== 'seznamka' || $('#modal').classList.contains('open') || ev.target.matches('input,textarea,select')) return;
-    if (ev.key === 'ArrowLeft') swipe('pass');
-    if (ev.key === 'ArrowRight') swipe('like');
   });
 
   /* Tažení karty (swipe gestem). */
@@ -816,7 +775,8 @@
     const view = r.name === '' ? views.home : views[r.name] || views.notfound;
     app.innerHTML = view(r.params);
     renderChrome(r.name);
-    if (r.name === 'seznamka') bindDrag();
+    if (r.name === 'seznamka') window.NexoDating?.mount($('#dating-root'));
+    else window.NexoDating?.unmount();
     if (lastRoute !== r.name) { window.scrollTo(0, 0); lastRoute = r.name; }
     document.title = r.name ? `${(NAV.find((n) => n[0] === r.name) || [, r.name === 'ucet' ? 'Účet' : r.name === 'kosik' ? 'Košík' : 'NEXO'])[1]} — NEXO` : 'NEXO — People • Places • Experiences';
   }

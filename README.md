@@ -9,7 +9,7 @@ Jeden ekosystém pro gay komunitu v Praze. Seznamka, e-shop, kluby, meetingy a k
 | Sekce | Funkce |
 |---|---|
 | **Domů** | Hero, karta NEXO+, 5 pilířů ekosystému, tarify |
-| **Seznamka** (`#/seznamka`) | Režimy Date / Friends / Tonight, swipe karty (myš, dotyk, šipky ←/→), matche, chat, limit lajků pro Free, filtry a vrácení swipu pro Ad-Free/NEXO+, Super like pro NEXO+, reklamy jen ve Free |
+| **Seznamka** (`#seznamka`) | **Skutečná, nad Supabase.** Registrace e-mailem (18+), profil s až 6 fotkami (EXIF/GPS se odstraní), **Okolí** = mřížka podle vzdálenosti s online stavem a filtry (Grindr), **Swipe** s matchem při vzájemném lajku (Tinder), **tapy** 👋🔥😉, **chat v reálném čase** s fotkami a „Přečteno“, blokování, nahlášení, skrytí vzdálenosti, smazání účtu |
 | **E-shop** (`#/shop`) | Kategorie, produkty, exkluzivní merch jen pro členy, košík, sleva 5–10 % pro NEXO+, body za nákup |
 | **Heaven** (`#/heaven`) | Program klubu, vstupenky, members-only noci, sleva 20 % pro NEXO+ |
 | **The Pitch** (`#/pitch`) | Speed dating (kapacita), drag shows, komunitní večery, prioritní registrace |
@@ -17,7 +17,15 @@ Jeden ekosystém pro gay komunitu v Praze. Seznamka, e-shop, kluby, meetingy a k
 | **Členství** (`#/clenstvi`) | Free / Dating Ad-Free (99 Kč) / NEXO+ (299 Kč), srovnávací tabulka, FAQ |
 | **Účet** (`#/ucet`) | Digitální členský průkaz s QR, NEXO Rewards (body a odměny), vstupenky, skupiny |
 
-Vše běží v prohlížeči — stav (tarif, košík, matche, vstupenky, body) se ukládá do `localStorage`. Platby, přihlášení a QR kódy jsou zatím demo.
+Seznamka běží naostro na Supabase (projekt `nexo`, Frankfurt). Ostatní části (e-shop, akce, členství) jsou zatím demo se stavem v `localStorage`.
+
+### Backend (Supabase)
+- Tabulky `profiles`, `locations`, `swipes`, `matches`, `taps`, `messages`, `blocks`, `reports` — vše s RLS.
+- Poloha je v tabulce `locations`, kterou nikdo kromě vlastníka nepřečte; ostatní dostanou jen vypočtenou vzdálenost z funkce `nearby()`.
+- RPC: `nearby`, `swipe`, `conversations`, `mark_read`, `mark_taps_seen`, `heartbeat`, `delete_account`.
+- Realtime na `messages`, `taps`, `matches`. Fotky v bucketu `photos` (zápis jen do vlastní složky).
+- 8 ukázkových profilů (`is_demo = true`) — lajkují zpět a v chatu automaticky odpoví. Smazání: `delete from auth.users where email like 'demo.%@nexo.invalid';`
+- Schéma je v migracích projektu (Supabase Dashboard → Database → Migrations).
 
 ## Spuštění
 
@@ -37,7 +45,10 @@ index.html        kostra stránky
 css/styles.css    design (tmavý, fialovo-růžový gradient)
 js/icons.js       SVG ikony
 js/data.js        ukázková data: profily, produkty, akce, skupiny, tarify, odměny
-js/app.js         router a celá logika aplikace
+js/app.js         router a logika webu
+js/dating.js      seznamka (Supabase klient)
+js/config.js      URL a publishable klíč Supabase
+css/dating.css    vzhled seznamky
 assets/           favicon
 docs/navrh.png    původní návrh
 ```
