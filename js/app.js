@@ -116,7 +116,7 @@
     return '';
   }
 
-  const adBanner = () => noAds() ? '' : `<div class="ad"><span class="ad-label">Reklama</span><span>Partner nabídka: 2+1 drink zdarma v baru U Sousedů.</span><a href="#/clenstvi" class="link">Bez reklam od 99 Kč</a></div>`;
+  const adBanner = () => noAds() ? '' : `<div class="ad"><span class="ad-label">Reklama</span><span>Partner nabídka: 2+1 drink zdarma v baru U Sousedů.</span><a href="#clenstvi" class="link">Bez reklam od 99 Kč</a></div>`;
 
   /* ---------- Navigace ---------- */
   const NAV = [
@@ -128,9 +128,9 @@
     ['clenstvi', 'Členství', 'gem'],
   ];
   function renderChrome(route) {
-    $('#nav').innerHTML = NAV.map(([r, l]) => `<a href="#/${r}" class="${route === r ? 'active' : ''}">${l}</a>`).join('');
+    $('#nav').innerHTML = NAV.map(([r, l]) => `<a href="#${r}" class="${route === r ? 'active' : ''}">${l}</a>`).join('');
     const tabs = [['', 'Domů', 'home'], ...NAV.slice(0, 3), ['ucet', 'Účet', 'user']];
-    $('#tabbar').innerHTML = tabs.map(([r, l, ic]) => `<a href="#/${r}" class="${route === r ? 'active' : ''}">${I(ic)}<span>${l}</span></a>`).join('');
+    $('#tabbar').innerHTML = tabs.map(([r, l, ic]) => `<a href="#${r}" class="${route === r ? 'active' : ''}">${I(ic)}<span>${l}</span></a>`).join('');
     const c = cartCount();
     $('#cartBtn').innerHTML = `${I('bag')}${c ? `<span class="badge">${c}</span>` : ''}`;
     $('#planChip').className = `plan-chip ${S.plan}`;
@@ -186,8 +186,8 @@
           <h1>Jeden ekosystém<br /><span class="grad-text">pro gay komunitu v Praze.</span></h1>
           <p class="lead">Seznamka, e-shop, kluby, meetingy a komunita. Propojeno jedním členstvím.</p>
           <div class="hero-cta">
-            <a class="btn btn-grad" href="#/seznamka">Začít zdarma ${I('arrowRight')}</a>
-            <a class="btn btn-ghost" href="#/clenstvi">Členství NEXO+</a>
+            <a class="btn btn-grad" href="#seznamka">Začít zdarma ${I('arrowRight')}</a>
+            <a class="btn btn-ghost" href="#clenstvi">Členství NEXO+</a>
           </div>
         </div>
         <div class="hero-visual">
@@ -196,7 +196,7 @@
             <div class="plus-sub">Membership</div>
             <p>Jeden účet. Více možností.<br />Online i offline.</p>
             <div class="plus-icons">
-              ${[['seznamka', 'heart', 'Seznamka'], ['shop', 'bag', 'E-shop'], ['pitch', 'ticket', 'Akce'], ['heaven', 'cocktail', 'Kluby'], ['friends', 'users', 'Friends']].map(([r, ic, l]) => `<a href="#/${r}">${I(ic)}<span>${l}</span></a>`).join('')}
+              ${[['seznamka', 'heart', 'Seznamka'], ['shop', 'bag', 'E-shop'], ['pitch', 'ticket', 'Akce'], ['heaven', 'cocktail', 'Kluby'], ['friends', 'users', 'Friends']].map(([r, ic, l]) => `<a href="#${r}">${I(ic)}<span>${l}</span></a>`).join('')}
             </div>
           </div>
           ${phoneMock()}
@@ -206,7 +206,7 @@
       <section class="container">
         <div class="pillars">
           ${pillars.map((p) => `
-            <a class="pillar" href="#/${p.r}">
+            <a class="pillar" href="#${p.r}">
               <div class="pillar-art">${art(p.r)}${p.n === 1 ? '<span class="n-badge">N</span>' : ''}</div>
               <div class="pillar-body">
                 <h3><span class="num">${p.n}.</span> ${p.t.toUpperCase()}</h3>
@@ -227,7 +227,7 @@
           ${I('qr', 'qr-ic')}
           <h3 class="grad-text">Jeden účet.<br />Všude s tebou.</h3>
           <p class="muted small">Přihlas se jednou a využívej všechny služby NEXO online i offline. Tvůj digitální členský průkaz, výhody a komunita v jedné aplikaci.</p>
-          <a href="#/ucet" class="link">Můj průkaz ${I('arrowRight')}</a>
+          <a href="#ucet" class="link">Můj průkaz ${I('arrowRight')}</a>
         </div>
       </section>`;
     },
@@ -261,7 +261,7 @@
               <button class="round round-lg round-like" data-act="like" aria-label="Líbí se mi" ${limitHit ? 'disabled' : ''}>${I('heart')}</button>
               <button class="round" data-act="super" aria-label="Super like" title="Super like (NEXO+)">${I('star')}</button>
             </div>` : ''}
-            ${limitHit ? `<p class="center small muted">Dnešní lajky došly. <a class="link" href="#/clenstvi">Neomezeně od 99 Kč</a></p>` : ''}
+            ${limitHit ? `<p class="center small muted">Dnešní lajky došly. <a class="link" href="#clenstvi">Neomezeně od 99 Kč</a></p>` : ''}
           </div>
           <aside class="chat-col glass">
             <h3 class="col-title">${I('chat')} Matche a zprávy</h3>
@@ -277,7 +277,7 @@
 
     /* ----- E-shop ----- */
     shop(params) {
-      const cat = params.get('cat') || 'all';
+      const cat = shopCat;
       const items = D.products.filter((p) => cat === 'all' || p.cat === cat);
       return `
       <section class="container page">
@@ -289,7 +289,7 @@
             <span>${I('percent')} ${isPlus() ? '<b>Tvá NEXO+ sleva je aktivní</b>' : '5–10 % s NEXO+'}</span>
           </div>
         </div>
-        <div class="chips">${D.productCats.map((c) => `<a class="chip ${cat === c.id ? 'on' : ''}" href="#/shop?cat=${c.id}">${c.name}</a>`).join('')}</div>
+        <div class="chips">${D.productCats.map((c) => `<button class="chip ${cat === c.id ? 'on' : ''}" data-act="cat" data-cat="${c.id}">${c.name}</button>`).join('')}</div>
         <div class="products">${items.map(productCard).join('')}</div>
         ${adBanner()}
       </section>`;
@@ -319,10 +319,10 @@
             ${full !== sub ? `<div class="accent"><span>Sleva NEXO+</span><span>−${kc(full - sub)}</span></div>` : ''}
             <div><span>Doprava (diskrétní balení)</span><span>${ship ? kc(ship) : 'Zdarma'}</span></div>
             <div class="total"><span>Celkem</span><span>${kc(sub + ship)}</span></div>
-            ${isPlus() ? `<div class="muted small">Za objednávku získáš <b>${Math.floor(sub / 10)} NEXO bodů</b>.</div>` : `<div class="muted small">S NEXO+ bys ušetřil ${kc(lines.reduce((a, l) => a + Math.round(l.p.price * (l.p.exclusive ? 0.1 : 0.05)) * l.q, 0))} a sbíral body. <a class="link" href="#/clenstvi">Více</a></div>`}
+            ${isPlus() ? `<div class="muted small">Za objednávku získáš <b>${Math.floor(sub / 10)} NEXO bodů</b>.</div>` : `<div class="muted small">S NEXO+ bys ušetřil ${kc(lines.reduce((a, l) => a + Math.round(l.p.price * (l.p.exclusive ? 0.1 : 0.05)) * l.q, 0))} a sbíral body. <a class="link" href="#clenstvi">Více</a></div>`}
           </div>
           <button class="btn btn-grad btn-block" data-act="checkout" data-total="${sub + ship}">Pokračovat k platbě</button>
-        </div>` : `<div class="empty glass">${I('bag')}<h3>Košík je prázdný</h3><a class="btn btn-ghost" href="#/shop">Do e-shopu</a></div>`}
+        </div>` : `<div class="empty glass">${I('bag')}<h3>Košík je prázdný</h3><a class="btn btn-ghost" href="#shop">Do e-shopu</a></div>`}
       </section>`;
     },
 
@@ -396,7 +396,7 @@
           <div class="acc-side">
             <label class="field"><span>Jméno na průkazu</span><input id="nameInput" maxlength="24" value="${esc(S.name)}" placeholder="Např. Honza" /></label>
             <div class="row-between"><span class="muted">Tarif</span><b>${planName()}</b></div>
-            <a href="#/clenstvi" class="btn btn-ghost btn-block">Změnit tarif</a>
+            <a href="#clenstvi" class="btn btn-ghost btn-block">Změnit tarif</a>
           </div>
         </div>
 
@@ -413,17 +413,17 @@
         <h2 class="sec-title">${I('ticket')} Moje vstupenky</h2>
         ${myTickets.length ? `<div class="tickets">${myTickets.map((t) => `
           <div class="ticket glass"><div class="grow"><p class="eyebrow">${venueName[t.e.venue]}</p><b>${esc(t.e.title)}</b><div class="muted small">${fmtDate(t.e.date)} • ${t.e.time} • ${t.qty}× vstup</div><div class="mono small">${t.code}</div></div>${qr(t.code, 84)}</div>`).join('')}</div>`
-          : `<p class="muted">Zatím žádné. <a class="link" href="#/heaven">Podívej se na akce</a>.</p>`}
+          : `<p class="muted">Zatím žádné. <a class="link" href="#heaven">Podívej se na akce</a>.</p>`}
 
         <h2 class="sec-title">${I('users')} Moje skupiny</h2>
-        ${myGroups.length ? `<div class="chips">${myGroups.map((g) => `<a class="chip on" href="#/friends">${g.name}</a>`).join('')}</div>` : `<p class="muted">Ještě nejsi v žádné skupině. <a class="link" href="#/friends">Najdi partu</a>.</p>`}
+        ${myGroups.length ? `<div class="chips">${myGroups.map((g) => `<a class="chip on" href="#friends">${g.name}</a>`).join('')}</div>` : `<p class="muted">Ještě nejsi v žádné skupině. <a class="link" href="#friends">Najdi partu</a>.</p>`}
 
         <div class="danger"><button class="btn btn-sm btn-ghost" data-act="reset-all">${I('logout')} Vymazat demo data</button></div>
       </section>`;
     },
 
     notfound() {
-      return `<section class="container page narrow"><div class="empty glass"><h3>Stránka nenalezena</h3><a class="btn btn-ghost" href="#/">Domů</a></div></section>`;
+      return `<section class="container page narrow"><div class="empty glass"><h3>Stránka nenalezena</h3><a class="btn btn-ghost" href="#">Domů</a></div></section>`;
     },
   };
 
@@ -459,7 +459,7 @@
   }
 
   function eventMini(e) {
-    return `<a class="ev-mini" href="#/${e.venue === 'nexo' ? 'pitch' : e.venue}"><span class="date-box"><b>${new Date(e.date).getDate()}.</b><small>${new Date(e.date).getMonth() + 1}.</small></span><div class="grow"><b>${esc(e.title)}</b><span class="muted small">${venueName[e.venue]} • ${e.time}</span></div>${I('arrowRight')}</a>`;
+    return `<a class="ev-mini" href="#${e.venue === 'nexo' ? 'pitch' : e.venue}"><span class="date-box"><b>${new Date(e.date).getDate()}.</b><small>${new Date(e.date).getMonth() + 1}.</small></span><div class="grow"><b>${esc(e.title)}</b><span class="muted small">${venueName[e.venue]} • ${e.time}</span></div>${I('arrowRight')}</a>`;
   }
 
   function productCard(p) {
@@ -475,7 +475,7 @@
         <p class="muted small">${esc(p.desc)}</p>
         <div class="product-foot">
           <div class="pprice">${d ? `<s>${kc(p.price)}</s>` : ''}<b>${kc(shopPrice(p))}</b></div>
-          ${locked ? `<a href="#/clenstvi" class="btn btn-sm btn-ghost">${I('lock')} NEXO+</a>` : `<button class="btn btn-sm btn-grad" data-act="add" data-id="${p.id}">${I('plus')} Do košíku</button>`}
+          ${locked ? `<a href="#clenstvi" class="btn btn-sm btn-ghost">${I('lock')} NEXO+</a>` : `<button class="btn btn-sm btn-grad" data-act="add" data-id="${p.id}">${I('plus')} Do košíku</button>`}
         </div>
       </div>
     </article>`;
@@ -487,8 +487,8 @@
     const d = eventDiscount(e);
     const pct = e.capacity ? Math.round((e.taken / e.capacity) * 100) : null;
     let action;
-    if (owned) action = `<a class="btn btn-sm btn-ghost" href="#/ucet">${I('check')} Máš vstupenku</a>`;
-    else if (locked) action = `<a class="btn btn-sm btn-ghost" href="#/clenstvi">${I('lock')} ${e.priority ? 'Priorita NEXO+' : 'Jen NEXO+'}</a>`;
+    if (owned) action = `<a class="btn btn-sm btn-ghost" href="#ucet">${I('check')} Máš vstupenku</a>`;
+    else if (locked) action = `<a class="btn btn-sm btn-ghost" href="#clenstvi">${I('lock')} ${e.priority ? 'Priorita NEXO+' : 'Jen NEXO+'}</a>`;
     else action = `<button class="btn btn-sm btn-grad" data-act="buy" data-id="${e.id}">${e.price ? 'Získat vstupenku' : 'Registrovat'}</button>`;
     return `<article class="event glass">
       <div class="date-box lg"><b>${new Date(e.date).getDate()}.</b><small>${fmtDate(e.date).split(' ')[0]} ${new Date(e.date).getMonth() + 1}.</small></div>
@@ -522,7 +522,7 @@
           </div>
         </div>
         <div class="perk-row">${perks.map(([ic, t]) => `<div class="perk glass">${I(ic)}<span>${t}</span></div>`).join('')}</div>
-        ${isPlus() ? `<div class="notice">${I('gem')}<span>Jsi člen NEXO+ — slevy jsou už započítané v cenách. Při vstupu ukaž průkaz v <a class="link" href="#/ucet">účtu</a>.</span></div>` : `<div class="notice">${I('sparkle')}<span>S <a class="link" href="#/clenstvi">NEXO+</a> máš 20 % slevu na vstup, priority vstup a members-only akce.</span></div>`}
+        ${isPlus() ? `<div class="notice">${I('gem')}<span>Jsi člen NEXO+ — slevy jsou už započítané v cenách. Při vstupu ukaž průkaz v <a class="link" href="#ucet">účtu</a>.</span></div>` : `<div class="notice">${I('sparkle')}<span>S <a class="link" href="#clenstvi">NEXO+</a> máš 20 % slevu na vstup, priority vstup a members-only akce.</span></div>`}
         <h2 class="sec-title">${I('calendar')} Program</h2>
         <div class="events">${evs.map(eventCard).join('')}</div>
       </section>`;
@@ -539,7 +539,7 @@
         <p class="muted small">${g.desc}</p>
         <div class="ev-meta">${I('users')} ${g.members + (joined ? 1 : 0)} členů • ${I('calendar')} ${g.next}</div>
       </div>
-      ${locked ? `<a class="btn btn-sm btn-ghost" href="#/clenstvi">${I('lock')} NEXO+</a>` : `<button class="btn btn-sm ${joined ? 'btn-ghost' : 'btn-grad'}" data-act="join" data-id="${g.id}">${joined ? 'Odejít' : 'Přidat se'}</button>`}
+      ${locked ? `<a class="btn btn-sm btn-ghost" href="#clenstvi">${I('lock')} NEXO+</a>` : `<button class="btn btn-sm ${joined ? 'btn-ghost' : 'btn-grad'}" data-act="join" data-id="${g.id}">${joined ? 'Odejít' : 'Přidat se'}</button>`}
     </article>`;
   }
 
@@ -607,7 +607,7 @@
 
   function filtersModal() {
     if (!noAds()) {
-      modal(`<div class="center"><h2>${I('filter')} Pokročilé filtry</h2><p class="muted">Filtry podle věku, vzdálenosti a ověření jsou součástí Ad-Free a NEXO+.</p><a href="#/clenstvi" class="btn btn-grad" data-act="close-modal">Zobrazit tarify</a></div>`);
+      modal(`<div class="center"><h2>${I('filter')} Pokročilé filtry</h2><p class="muted">Filtry podle věku, vzdálenosti a ověření jsou součástí Ad-Free a NEXO+.</p><a href="#clenstvi" class="btn btn-grad" data-act="close-modal">Zobrazit tarify</a></div>`);
       return;
     }
     const f = S.filters;
@@ -627,6 +627,7 @@
     const id = el.dataset.id;
     switch (act) {
       case 'close-modal': closeModal(); break;
+      case 'cat': shopCat = el.dataset.cat; render(); break;
       case 'mode': S.mode = el.dataset.mode; save(); render(); break;
       case 'like': swipe('like'); break;
       case 'pass': swipe('pass'); break;
@@ -645,7 +646,7 @@
       case 'reset-deck': S.passed = []; S.history = []; save(); render(); break;
       case 'filters': filtersModal(); break;
       case 'open-chat': chatModal(id); break;
-      case 'go-friends-mode': S.mode = 'friends'; save(); location.hash = '#/seznamka'; break;
+      case 'go-friends-mode': S.mode = 'friends'; save(); location.hash = '#seznamka'; break;
       case 'add': {
         S.cart[id] = (S.cart[id] || 0) + 1; save(); renderChrome(route().name);
         toast(`${I('check')} Přidáno do košíku`); break;
@@ -665,7 +666,7 @@
       case 'pay': {
         const total = Number(el.dataset.total);
         const pts = isPlus() ? Math.floor(total / 10) : 0;
-        S.points += pts; S.cart = {}; save(); closeModal(); location.hash = '#/ucet';
+        S.points += pts; S.cart = {}; save(); closeModal(); location.hash = '#ucet';
         toast(`${I('check')} Objednávka přijata${pts ? ` • +${pts} bodů` : ''}. Odešleme v diskrétním balení.`);
         break;
       }
@@ -809,6 +810,7 @@
     return { name, params: new URLSearchParams(qs || '') };
   }
   let lastRoute = null;
+  let shopCat = 'all';
   function render() {
     const r = route();
     const view = r.name === '' ? views.home : views[r.name] || views.notfound;
