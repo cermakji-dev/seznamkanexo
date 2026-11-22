@@ -40,6 +40,7 @@
   const time = (ts) => new Date(ts).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
   const errText = (e) => {
     const m = e?.message || String(e);
+    if (/Neplatný e-mail/i.test(m)) return 'Neplatný e-mail.';
     if (/Invalid login/i.test(m)) return 'Špatný e-mail nebo heslo.';
     if (/not confirmed/i.test(m)) return 'E-mail ještě není potvrzený — klikni na odkaz v e-mailu.';
     if (/already registered/i.test(m)) return 'Tento e-mail už je registrovaný. Zkus se přihlásit.';
@@ -234,12 +235,11 @@
           <label class="field"><span>E-mail</span><input name="email" type="email" required autocomplete="email" /></label>
           ${st.authMode !== 'reset' ? `<label class="field"><span>Heslo</span><input name="password" type="password" required minlength="8" autocomplete="${signup ? 'new-password' : 'current-password'}" /></label>` : ''}
           ${signup ? `<label class="check"><input type="checkbox" name="adult" required /> Je mi 18 nebo více let</label>
-          <label class="check"><input type="checkbox" name="terms" required /> Souhlasím se zpracováním údajů pro provoz seznamky</label>` : ''}
+          <p class="muted small">Testovací provoz — bez ověřování e-mailu, stačí vymyslet heslo (min. 8 znaků).</p>` : ''}
           <button class="btn btn-grad btn-block" ${st.busy ? 'disabled' : ''}>${signup ? 'Registrovat' : st.authMode === 'reset' ? 'Poslat odkaz' : 'Přihlásit se'}</button>
         </form>
         <div class="d-auth-links">
           ${signup ? `<button class="link" data-d="auth-mode" data-m="login">Už mám účet</button>` : `<button class="link" data-d="auth-mode" data-m="signup">Nemám účet — registrovat</button>`}
-          ${st.authMode === 'login' ? `<button class="link" data-d="auth-mode" data-m="reset">Zapomenuté heslo</button>` : ''}
           ${st.authMode === 'reset' ? `<button class="link" data-d="auth-mode" data-m="login">Zpět na přihlášení</button>` : ''}
         </div>
       </div>
@@ -658,7 +658,11 @@
       const email = String(fd.get('email')).trim(), password = String(fd.get('password') || '');
       let res;
       const redirect = location.origin + location.pathname;
-      if (st.authMode === 'signup') res = await sb.auth.signUp({ email, password, options: { emailRedirectTo: redirect } });
+      if (st.authMode === 'signup') {
+        // Testovací provoz: účet se založí rovnou potvrzený, bez e-mailu
+        res = await sb.rpc('test_signup', { p_email: email, p_password: password });
+        if (!res.error) res = await sb.auth.signInWithPassword({ email: email.toLowerCase(), password });
+      }
       else if (st.authMode === 'reset') res = await sb.auth.resetPasswordForEmail(email, { redirectTo: redirect });
       else res = await sb.auth.signInWithPassword({ email, password });
       st.busy = false;

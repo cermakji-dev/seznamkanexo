@@ -24,6 +24,7 @@ Seznamka běží naostro na Supabase (projekt `nexo`, Frankfurt). Ostatní čás
 - Poloha je v tabulce `locations`, kterou nikdo kromě vlastníka nepřečte; ostatní dostanou jen vypočtenou vzdálenost z funkce `nearby()`.
 - RPC: `nearby`, `swipe`, `conversations`, `mark_read`, `mark_taps_seen`, `heartbeat`, `delete_account`.
 - Realtime na `messages`, `taps`, `matches`. Fotky v bucketu `photos` (zápis jen do vlastní složky).
+- **Testovací provoz:** registrace jde přes funkci `test_signup` — účet je hned potvrzený, žádný e-mail se neposílá. Před ostrým spuštěním: `drop function public.test_signup(text, text);` a vrátit `sb.auth.signUp` v `js/dating.js`.
 - 8 ukázkových profilů (`is_demo = true`) — lajkují zpět a v chatu automaticky odpoví. Smazání: `delete from auth.users where email like 'demo.%@nexo.invalid';`
 - Schéma je v migracích projektu (Supabase Dashboard → Database → Migrations).
 
