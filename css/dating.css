@@ -1,10 +1,10 @@
-/* ---------- Režim seznamky: bez duplicitní navigace webu ---------- */
-body.in-dating .footer, body.in-dating .tabbar, body.in-dating .topbar .nav, body.in-dating .topbar-actions { display: none; }
-body.in-dating .topbar { padding-top: 10px; padding-bottom: 10px; }
-.d-back { margin-left: auto; font-size: 13px; color: var(--muted); display: none; }
-body.in-dating .d-back { display: inline-flex; gap: 6px; align-items: center; }
-.d-back:hover { color: #fff; }
-.d-back .ic { width: 15px; height: 15px; }
+/* ---------- Samostatná aplikace ---------- */
+.app-bar { padding-top: 10px; padding-bottom: 10px; justify-content: space-between; }
+.app-brand { display: flex; align-items: center; gap: 10px; }
+.app-tag { font-size: 11px; letter-spacing: .22em; text-transform: uppercase; padding: 3px 9px; border-radius: 99px; background: rgba(196, 107, 255, .16); color: #e5c9ff; }
+.app-web { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; color: var(--muted); }
+.app-web:hover { color: #fff; }
+.app-web .ic { width: 14px; height: 14px; }
 .d-page { padding: 14px 0 28px; }
 
 /* ---------- Seznamka ---------- */
@@ -177,6 +177,6 @@ body.in-dating .d-back { display: inline-flex; gap: 6px; align-items: center; }
   .modal-chat { height: 92vh; }
 }
 @media (max-width: 720px) {
-  body.in-dating .toast { top: 64px; bottom: auto; transform: translate(-50%, -20px); }
-  body.in-dating .toast.show { transform: translate(-50%, 0); }
+  body.dating-app .toast { top: 64px; bottom: auto; transform: translate(-50%, -20px); }
+  body.dating-app .toast.show { transform: translate(-50%, 0); }
 }

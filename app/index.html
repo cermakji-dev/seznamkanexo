@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>NEXO Seznamka</title>
+  <meta name="description" content="NEXO Seznamka — lidé v okolí, swipe, matche a chat v reálném čase. Pro gay komunitu v Praze." />
+  <meta name="theme-color" content="#07060b" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="NEXO" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="../assets/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="../css/dating.css" />
+</head>
+<body class="dating-app">
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <header class="topbar app-bar">
+    <a href="./" class="app-brand" aria-label="NEXO Seznamka">
+      <span class="logo">NEXO</span><span class="app-tag">Seznamka</span>
+    </a>
+    <a href="../" class="app-web">Web NEXO
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
+    </a>
+  </header>
+
+  <main class="container d-page">
+    <div id="dating-root"></div>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="modal-root" id="modal"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/icons.js"></script>
+  <script src="../js/dating.js"></script>
+  <script>
+    window.NexoDating && window.NexoDating.mount(document.getElementById('dating-root'));
+  </script>
+</body>
+</html>

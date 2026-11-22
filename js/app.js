@@ -128,9 +128,10 @@
     ['clenstvi', 'Členství', 'gem'],
   ];
   function renderChrome(route) {
-    $('#nav').innerHTML = NAV.map(([r, l]) => `<a href="#${r}" class="${route === r ? 'active' : ''}">${l}</a>`).join('');
+    const href = (r) => (r === 'seznamka' ? 'app/' : `#${r}`);
+    $('#nav').innerHTML = NAV.map(([r, l]) => `<a href="${href(r)}" class="${route === r ? 'active' : ''}">${l}</a>`).join('');
     const tabs = [['', 'Domů', 'home'], ...NAV.slice(0, 3), ['ucet', 'Účet', 'user']];
-    $('#tabbar').innerHTML = tabs.map(([r, l, ic]) => `<a href="#${r}" class="${route === r ? 'active' : ''}">${I(ic)}<span>${l}</span></a>`).join('');
+ $('#tabbar').innerHTML = tabs.map(([r, l, ic]) => `<a href="${href(r)}" class="${route === r ? 'active' : ''}">${I(ic)}<span>${l}</span></a>`).join('');
     const c = cartCount();
     $('#cartBtn').innerHTML = `${I('bag')}${c ? `<span class="badge">${c}</span>` : ''}`;
     $('#planChip').className = `plan-chip ${S.plan}`;
@@ -230,11 +231,6 @@
           <a href="#ucet" class="link">Můj průkaz ${I('arrowRight')}</a>
         </div>
       </section>`;
-    },
-
-    /* ----- Seznamka (skutečná, js/dating.js) ----- */
-    seznamka() {
-      return `<section class="container d-page"><div id="dating-root"></div></section>`;
     },
 
     /* ----- E-shop ----- */
@@ -772,12 +768,10 @@
   let shopCat = 'all';
   function render() {
     const r = route();
+    if (r.name === 'seznamka') { location.replace('app/'); return; }
     const view = r.name === '' ? views.home : views[r.name] || views.notfound;
     app.innerHTML = view(r.params);
     renderChrome(r.name);
-    document.body.classList.toggle('in-dating', r.name === 'seznamka');
-    if (r.name === 'seznamka') window.NexoDating?.mount($('#dating-root'));
-    else window.NexoDating?.unmount();
     if (lastRoute !== r.name) { window.scrollTo(0, 0); lastRoute = r.name; }
     document.title = r.name ? `${(NAV.find((n) => n[0] === r.name) || [, r.name === 'ucet' ? 'Účet' : r.name === 'kosik' ? 'Košík' : 'NEXO'])[1]} — NEXO` : 'NEXO — People • Places • Experiences';
   }

@@ -6,7 +6,6 @@
   const $ = (s, r = document) => r.querySelector(s);
 
   // Po potvrzení e-mailu (PKCE ?code=…) rovnou do seznamky
-  if (/[?&](code|error_description)=/.test(location.search) && !location.hash) location.hash = '#seznamka';
 
   const LOOKING = { date: 'Rande', friends: 'Přátelé', tonight: 'Dnes večer', chat: 'Chat' };
   const TAPS = { hi: ['👋', 'Ahoj'], flame: ['🔥', 'Líbíš se mi'], wink: ['😉', 'Mrk'] };
@@ -540,7 +539,7 @@
 
   document.addEventListener('click', async (ev) => {
     const closer = ev.target.closest('[data-act="close-modal"]');
-    if (closer) { st.chat = null; return; }
+    if (closer) { closeModal(); return; }
     const el = ev.target.closest('[data-d]');
     if (!el || !sb) return;
     const d = el.dataset.d, id = el.dataset.id;
@@ -717,7 +716,7 @@
   });
 
   document.addEventListener('keydown', (ev) => {
-    if (ev.key === 'Escape') st.chat = null;
+    if (ev.key === 'Escape' && $('#modal.open')) closeModal();
     if (!st.mounted || st.view !== 'swipe' || $('#modal.open') || ev.target.matches('input,textarea,select')) return;
     if (ev.key === 'ArrowLeft') doSwipe(false);
     if (ev.key === 'ArrowRight') doSwipe(true);

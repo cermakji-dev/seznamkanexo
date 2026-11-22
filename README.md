@@ -9,7 +9,7 @@ Jeden ekosystém pro gay komunitu v Praze. Seznamka, e-shop, kluby, meetingy a k
 | Sekce | Funkce |
 |---|---|
 | **Domů** | Hero, karta NEXO+, 5 pilířů ekosystému, tarify |
-| **Seznamka** (`#seznamka`) | **Skutečná, nad Supabase.** Registrace e-mailem (18+), profil s až 6 fotkami (EXIF/GPS se odstraní), **Okolí** = mřížka podle vzdálenosti s online stavem a filtry (Grindr), **Swipe** s matchem při vzájemném lajku (Tinder), **tapy** 👋🔥😉, **chat v reálném čase** s fotkami a „Přečteno“, blokování, nahlášení, skrytí vzdálenosti, smazání účtu |
+| **Seznamka** (samostatná aplikace `app/`) | **Skutečná, nad Supabase.** Registrace e-mailem (18+), profil s až 6 fotkami (EXIF/GPS se odstraní), **Okolí** = mřížka podle vzdálenosti s online stavem a filtry (Grindr), **Swipe** s matchem při vzájemném lajku (Tinder), **tapy** 👋🔥😉, **chat v reálném čase** s fotkami a „Přečteno“, blokování, nahlášení, skrytí vzdálenosti, smazání účtu |
 | **E-shop** (`#/shop`) | Kategorie, produkty, exkluzivní merch jen pro členy, košík, sleva 5–10 % pro NEXO+, body za nákup |
 | **Heaven** (`#/heaven`) | Program klubu, vstupenky, members-only noci, sleva 20 % pro NEXO+ |
 | **The Pitch** (`#/pitch`) | Speed dating (kapacita), drag shows, komunitní večery, prioritní registrace |
@@ -37,12 +37,16 @@ python3 -m http.server 8000
 # otevři http://localhost:8000
 ```
 
-Web je nasazený přes GitHub Pages.
+Web je nasazený přes GitHub Pages:
+
+- Web NEXO: https://cermakji-dev.github.io/seznamkanexo/
+- Seznamka (samostatná aplikace, jde přidat na plochu telefonu): https://cermakji-dev.github.io/seznamkanexo/app/
 
 ## Struktura
 
 ```
-index.html        kostra stránky
+index.html        web NEXO
+app/index.html    samostatná aplikace Seznamka (+ manifest pro instalaci)
 css/styles.css    design (tmavý, fialovo-růžový gradient)
 js/icons.js       SVG ikony
 js/data.js        ukázková data: profily, produkty, akce, skupiny, tarify, odměny

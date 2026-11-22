@@ -1,0 +1,14 @@
+{
+  "name": "NEXO Seznamka",
+  "short_name": "NEXO",
+  "description": "Lidé v okolí, swipe, matche a chat v reálném čase.",
+  "lang": "cs",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#07060b",
+  "theme_color": "#07060b",
+  "icons": [
+    { "src": "../assets/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
