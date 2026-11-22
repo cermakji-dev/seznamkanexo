@@ -316,7 +316,7 @@
         <button class="round round-lg" data-d="swipe" data-l="0" aria-label="Přeskočit">${I('x')}</button>
         <button class="round" data-d="open-profile" data-id="${top.id}" aria-label="Detail profilu">${I('user')}</button>
         <button class="round round-lg round-like" data-d="swipe" data-l="1" aria-label="Líbí se mi">${I('heart')}</button>
-      </div><p class="center small muted">Tip: táhni kartu doleva/doprava nebo použij šipky.</p>` : ''}
+      </div><p class="center small muted d-hint">Tip: táhni kartu nebo použij šipky ← →</p>` : ''}
     </div>`;
   }
   function swipeCard(p, isTop) {

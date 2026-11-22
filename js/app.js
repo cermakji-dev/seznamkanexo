@@ -234,7 +234,7 @@
 
     /* ----- Seznamka (skutečná, js/dating.js) ----- */
     seznamka() {
-      return `<section class="container page"><div class="page-head"><div><p class="eyebrow">1. Seznamka</p><h1>Poznej nové lidi</h1><p class="muted">Na vztah, sex nebo přátelství — ty volíš režim.</p></div></div><div id="dating-root"></div></section>`;
+      return `<section class="container d-page"><div id="dating-root"></div></section>`;
     },
 
     /* ----- E-shop ----- */
@@ -775,6 +775,7 @@
     const view = r.name === '' ? views.home : views[r.name] || views.notfound;
     app.innerHTML = view(r.params);
     renderChrome(r.name);
+    document.body.classList.toggle('in-dating', r.name === 'seznamka');
     if (r.name === 'seznamka') window.NexoDating?.mount($('#dating-root'));
     else window.NexoDating?.unmount();
     if (lastRoute !== r.name) { window.scrollTo(0, 0); lastRoute = r.name; }
